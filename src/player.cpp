@@ -107,6 +107,7 @@ namespace Player {
 namespace {
 	double start_time;
 	double next_frame;
+	bool is_rtp_disabled;
 
 	// Overwritten by --encoding
 	std::string forced_encoding;
@@ -409,7 +410,7 @@ void Player::ParseCommandLine(int argc, char *argv[]) {
 	party_x_position = -1;
 	party_y_position = -1;
 	start_map_id = -1;
-	no_rtp_flag = false;
+	is_rtp_disabled = false;
 	no_audio_flag = false;
 
 	std::vector<std::string> args;
@@ -572,7 +573,7 @@ void Player::ParseCommandLine(int argc, char *argv[]) {
 			no_audio_flag = true;
 		}
 		else if (*it == "--disable-rtp") {
-			no_rtp_flag = true;
+			is_rtp_disabled = true;
 		}
 		else if (*it == "--version" || *it == "-v") {
 			PrintVersion();
@@ -616,13 +617,14 @@ void Player::CreateGameObjects() {
 
 	LoadDatabase();
 
+	no_rtp_flag = false;
 	std::string ini_file = FileFinder::FindDefault(INI_NAME);
 
 	INIReader ini(ini_file);
 	if (ini.ParseError() != -1) {
 		std::string title = ini.Get("RPG_RT", "GameTitle", GAME_TITLE);
 		game_title = ReaderUtil::Recode(title, encoding);
-		no_rtp_flag = ini.Get("RPG_RT", "FullPackageFlag", "0") == "1"? true : no_rtp_flag;
+		no_rtp_flag = is_rtp_disabled ? true : ini.Get("RPG_RT", "FullPackageFlag", "0") == "1";
 	}
 
 	std::stringstream title;
